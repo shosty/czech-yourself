@@ -38,15 +38,16 @@ verbs_translation = {'nominative': 'It is the',
 
 
 class Word():
-    def __init__(self, translation='', case=''):
+    def __init__(self, translation='', case='', language=''):
         assert ' ' not in translation, 'No spaces allowed'
         self.translation = translation
         self.case = case
+        self.language = language
 
 
 class Noun(Word):
-    def __init__(self, translation, case, card, gender, noun_class):
-        Word.__init__(self, translation, case)
+    def __init__(self, translation, case, card, gender, noun_class, language):
+        Word.__init__(self, translation, case, language)
         self.card = card
         self.gender = gender
         self.noun_class = noun_class
@@ -68,7 +69,7 @@ class Noun(Word):
 class CzechNoun(Noun):
     def __init__(self, translation='', case='', card='s', gender='', noun_class='', singular_stem_class='',
                  singular_stem='', singular_declension='', plural_stem_class='', plural_stem='', plural_declension='', **kwargs):
-        Noun.__init__(self, translation, case, card, gender, noun_class)
+        Noun.__init__(self, translation, case, card, gender, noun_class, 'czech')
 
         self.singular_stem_class = singular_stem_class
         self.singular_stem = singular_stem[:-1] if singular_stem_class == 'soft' else singular_stem
@@ -93,7 +94,7 @@ class CzechNoun(Noun):
         if adjective is not None:
             assert adjective.case == self.case, 'Verb/Noun case mis-match'
 
-        latex_macro = {'singular': '\czechcard', 'plural': '\czechcardplural'}
+        latex_macro = {'singular': '\card', 'plural': '\cardplural'}
 
         if card_format == 'singular':
             verb = verbs[self.case]['verb']
@@ -101,9 +102,9 @@ class CzechNoun(Noun):
             descriptor = descriptor.latex(self.case, self.gender, card_format, 'my') if descriptor is not None else ''
 
             if self.case == 'nominative':
-                latex_string = '\czechcard{%(case)s}{' % self.__dict__ + descriptor + adjective + ' %(singular_stem)s\soft{%(singular_stem_soft_ending)s}\%(gender)s{%(singular_declension)s} je tady}' % self.__dict__
+                latex_string = '\card{%(case)s}{' % self.__dict__ + descriptor + adjective + ' %(singular_stem)s\soft{%(singular_stem_soft_ending)s}\%(gender)s{%(singular_declension)s} je tady}' % self.__dict__
             else:
-                latex_string = '\czechcard{%(case)s}{' % self.__dict__ + verb + descriptor + adjective + ' %(singular_stem)s\soft{%(singular_stem_soft_ending)s}\%(gender)s{%(singular_declension)s}}' % self.__dict__
+                latex_string = '\card{%(case)s}{' % self.__dict__ + verb + descriptor + adjective + ' %(singular_stem)s\soft{%(singular_stem_soft_ending)s}\%(gender)s{%(singular_declension)s}}' % self.__dict__
 
         if card_format == 'plural':
             verb = verbs[self.case]['verb_1']
@@ -112,21 +113,21 @@ class CzechNoun(Noun):
                                                  'my') if descriptor is not None else ''
 
             if self.case == 'nominative':
-                latex_string = '\czechcard{%(case)s}{' % self.__dict__ + descriptor_plural + adjective_plural + ' \pl{%(plural_stem)s\soft{%(plural_stem_soft_ending)s}}\%(gender)s{%(plural_declension)s} jsou tady}' % self.__dict__
+                latex_string = '\card{%(case)s}{' % self.__dict__ + descriptor_plural + adjective_plural + ' \pl{%(plural_stem)s\soft{%(plural_stem_soft_ending)s}}\%(gender)s{%(plural_declension)s} jsou tady}' % self.__dict__
             else:
-                latex_string = '\czechcard{%(case)s}{' % self.__dict__ + verb + descriptor_plural + adjective_plural + ' \pl{%(plural_stem)s\soft{%(plural_stem_soft_ending)s}}\%(gender)s{%(plural_declension)s}}' % self.__dict__
+                latex_string = '\card{%(case)s}{' % self.__dict__ + verb + descriptor_plural + adjective_plural + ' \pl{%(plural_stem)s\soft{%(plural_stem_soft_ending)s}}\%(gender)s{%(plural_declension)s}}' % self.__dict__
 
-        return (latex_string)
+        return ('%s{%s}' % (latex_string, self.language))
 
     def __repr__(self):
         return (self.singular_stem.encode('utf-8'))
 
 
 class Adjective(Word):
-    def __init__(self, translation='', case='', adjective_class='', stem='', MA_singular='', MI_singular='',
+    def __init__(self, singular_translation='', case='', adjective_class='', stem='', MA_singular='', MI_singular='',
                  F_singular='', N_singular='', MA_plural_stem='', MA_plural='', MI_plural='', F_plural='', N_plural='',
                  **kwargs):
-        Word.__init__(self, translation, case=case)
+        Word.__init__(self, singular_translation, case=case)
         self.adjective_class = adjective_class
         self.stem = stem
         self.MAs = MA_singular
@@ -215,34 +216,55 @@ def parse_google_sheet(SAMPLE_SPREADHSEET_ID, SAMPLE_RANGE_NAMES):
 
     return (values_nouns, values_adjectives, values_demonstratives)
 
-# def parse_excel_vocab_sheet():
-# nouns = pd.read_excel('/Users/asavol/Dropbox/Public/CZECH/LATEX/Czech_vocabulary.xlsx',sheet_name='Nouns')
-# adjectives = pd.read_excel('/Users/asavol/Dropbox/Public/CZECH/LATEX/Czech_vocabulary.xlsx',sheet_name='Adjectives')
 
-# nouns[nouns.isna()] = ''
-# adjectives[adjectives.isna()] = ''
-# nouns.replace('nan','',inplace=True)
-# adjectives.replace('nan','',inplace=True)
+def parse_excel_vocab_sheet(language='Czech'):
+    # nouns = pd.read_excel('/Users/asavol/Dropbox/Public/CZECH/LATEX/Czech_vocabulary.xlsx',sheet_name='Nouns')
+    # adjectives = pd.read_excel('/Users/asavol/Dropbox/Public/CZECH/LATEX/Czech_vocabulary.xlsx',sheet_name='Adjectives')
 
-# return(nouns,adjectives)
+    if language == 'Czech':
+        nouns = pd.read_excel('/Users/asavol/Downloads/Czech vocabulary.xlsx', sheet_name='Nouns')
+        adjectives = pd.read_excel('/Users/asavol/Downloads/Czech vocabulary.xlsx', sheet_name='Adjectives')
+        demonstratives = pd.read_excel('/Users/asavol/Downloads/Czech vocabulary.xlsx', sheet_name='Demonstratives')
+
+        nouns[nouns.isna()] = ''
+        adjectives[adjectives.isna()] = ''
+        nouns.replace('nan', '', inplace=True)
+        adjectives.replace('nan', '', inplace=True)
+        vocab = (nouns, adjectives, demonstratives)
+        
+    if language == 'German':
+        nouns = pd.read_excel('/Users/asavol/Downloads/German vocabulary.xlsx', sheet_name='Nouns')
+        # adjectives = pd.read_excel('/Users/asavol/Downloads/Czech vocabulary.xlsx', sheet_name='Adjectives')
+        # demonstratives = pd.read_excel('/Users/asavol/Downloads/Czech vocabulary.xlsx', sheet_name='Demonstratives')
+
+        # nouns[nouns.isna()] = ''
+        # adjectives[adjectives.isna()] = ''
+        # nouns.replace('nan', '', inplace=True)
+        # adjectives.replace('nan', '', inplace=True)
+        vocab = (nouns)
+
+    return vocab
+
+
+def german_main():
+    v = parse_excel_vocab_sheet(language='German')
+    return v
+
 
 def czech_main():
-    nouns, adjectives, demonstratives = parse_google_sheet(SAMPLE_SPREADSHEET_ID, SAMPLE_RANGE_NAMES)
+    # nouns, adjectives, demonstratives = parse_google_sheet(SAMPLE_SPREADSHEET_ID, SAMPLE_RANGE_NAMES)
+    nouns, adjectives, demonstratives = parse_excel_vocab_sheet(language='Czech')
 
-    all_cases  = ['nominative', 'accusative', 'locative', 'genitive', 'instrumental', 'dative', 'vocative']
+    all_cases = ['nominative', 'accusative', 'locative', 'genitive', 'instrumental', 'dative', 'vocative']
 
     if True:
         # -----
         # NOUNS
         # -----
         NS = {case: [] for case in all_cases}
-        
-        declension_components = nouns.pop(0)
-        for record in nouns:
-            record_dict = dict(zip(declension_components, record))
-            record_dict.pop('final_column')
 
-            x = CzechNoun(**record_dict)
+        for record in nouns.iterrows():
+            x = CzechNoun(**record[1])  # ignore record index
             NS[x.case].append(x)
 
         # ----------
@@ -250,18 +272,14 @@ def czech_main():
         # ----------
         AS = {case: [] for case in all_cases}
 
-        declension_components = adjectives.pop(0)
-        for record in adjectives:
-            record_dict = dict(zip(declension_components, record))
-            record_dict.pop('final_column')
-
-            x = Adjective(**record_dict)
+        for record in adjectives.iterrows():
+            x = Adjective(**record[1])  # ignore record index
             AS[x.case].append(x)
 
         i_slide = 0
         rename_slides = []
 
-        if False:
+        if True:
             with open('czech_flashcards_entries.tex', 'w') as fid:
                 for case in ['nominative', 'accusative', 'locative', 'genitive', 'instrumental', 'dative', 'vocative']:
                     # for case in ['genitive']:
@@ -299,8 +317,8 @@ def czech_main():
                 for cmd in rename_slides:
                     os.system(cmd)
 
-    return (NS, AS)
-
+    return NS, AS
 
 if __name__ == '__main__':
-    (N, A) = czech_main()
+    # (N, A) = czech_main()
+    V = german_main()

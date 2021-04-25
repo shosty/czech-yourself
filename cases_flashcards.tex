@@ -1,0 +1,138 @@
+\documentclass[20pt]{beamer}
+\usepackage{xcolor}
+\usepackage{amsmath}% http://ctan.org/pkg/amsmath
+\usepackage{array, makecell} %
+\usepackage{tcolorbox}
+\usepackage{ifthen}
+
+% \usepackage[utf8]{inputenc}
+% \usepackage[T1]{fontenc}
+
+\usepackage{graphicx}
+% \usepackage{watermark}
+% \thiswatermark{\centering \put(112,-550){\includegraphics[scale=0.9]{my_image.png}} }
+
+
+% \usepackage[papersize={10cm,10cm}]{geometry}
+
+% \usepackage{beamerthemesplit} // Activate for custom appearance
+
+%\title{Example Presentation Created with the Beamer Package}
+%\author{Till Tantau}
+%\date{\today}
+
+\definecolor{lblue}{rgb}{0.,0.65,1.0}
+\definecolor{dblue}{rgb}{0.2,0.2,1.0}
+\definecolor{dgreen}{rgb}{0.,0.70,0.}
+\definecolor{dred}{rgb}{0.80,0.,0.}
+% \definecolor{dpurple}{rgb}{0.70,0.,0.7}
+
+\newcommand{\MI}[1]{\textcolor{dblue}{#1}}
+\newcommand{\MA}[1]{\textcolor{lblue}{#1}}
+\newcommand{\F}[1]{\textcolor{dred}{#1}}
+\newcommand{\N}[1]{\textcolor{dgreen}{#1}}
+\newcommand{\pl}[1]{\textcolor{violet}{#1}}
+\newcommand{\soft}[1]{\underline{#1}}
+
+\newcommand{\card}[3]{
+
+\ifthenelse{\equal{#1}{nominative}\AND\equal{#3}{czech}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/narodni_divadlo.jpg}}}{}
+
+\ifthenelse{\equal{#1}{nominative}\AND\equal{#3}{german}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/staatsoper.jpg}}}{}
+
+\ifthenelse{\equal{#1}{accusative}\AND\equal{#3}{czech}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/savoy.jpg}}}{}
+
+\ifthenelse{\equal{#1}{accusative}\AND\equal{#3}{german}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/einstein.jpg}}}{}
+
+\ifthenelse{\equal{#1}{locative}\AND\equal{#3}{czech}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/karluv_most.jpg}}}{}
+
+\ifthenelse{\equal{#1}{genitive}\AND\equal{#3}{czech}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/hrad.jpg}}}{}
+
+\ifthenelse{\equal{#1}{genitive}\AND\equal{#3}{german}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/bibliothek.jpg}}}{}
+
+\ifthenelse{\equal{#1}{instrumental}\AND\equal{#3}{czech}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/nadrazi.jpg}}}{}
+
+\ifthenelse{\equal{#1}{dative}\AND\equal{#3}{czech}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/petschek_palac.jpg}}}{}
+
+\ifthenelse{\equal{#1}{dative}\AND\equal{#3}{german}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/reichstag.jpg}}}{}
+
+\ifthenelse{\equal{#1}{vocative}\AND\equal{#3}{czech}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/rudolfinum.jpg}}}{}
+
+\begin{frame}[t]
+% \begin{center}
+\large
+\begin{tcolorbox}[halign=center]
+#2
+\end{tcolorbox}
+
+% \end{center}
+\end{frame}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% WITH PLURALS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\cardplural}[5]{
+
+\ifthenelse{\equal{#1}{accusative}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/savoy.jpg}}}{}
+
+\ifthenelse{\equal{#1}{nominative}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/narodni_divadlo.jpg}}}{}
+
+\ifthenelse{\equal{#1}{locative}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/karluv_most.jpg}}}{}
+
+\ifthenelse{\equal{#1}{genitive}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/hrad.jpg}}}{}
+
+\ifthenelse{\equal{#1}{dative}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/petschek_palac.jpg}}}{}
+
+\ifthenelse{\equal{#1}{instrumental}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/nadrazi.jpg}}}{}
+
+\ifthenelse{\equal{#1}{vocative}}{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{FIG/rudolfinum.jpg}}}{}
+
+\begin{frame}[t]
+
+\ifthenelse{\equal{#5}{large}}{\large}{}
+\ifthenelse{\equal{#5}{normalsize}}{\normalsize}{}
+\ifthenelse{\equal{#5}{small}}{\small}{}
+\ifthenelse{\equal{#5}{footnotesize}}{\footnotesize}{}
+
+% \begin{center}
+% \footnotesize
+\begin{tcolorbox}[halign=center,text height=2.1cm]
+\begin{table}[thb]
+\centering\renewcommand\cellalign{lc}
+\setcellgapes{3pt}\makegapedcells
+\begin{tabular}{ll}
+#2 & \makecell{#3 \\ #4} \\
+\end{tabular}
+\end{table}
+\end{tcolorbox}
+\end{frame}
+% \end{center}
+}
+
+\begin{document}
+
+\input{czech_flashcards_entries.tex}
+
+\end{document}
+
+% convert -density 400 cases_flashcards.pdf cases_flashcards.png
