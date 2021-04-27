@@ -68,7 +68,8 @@ class Noun(Word):
 
 class CzechNoun(Noun):
     def __init__(self, translation='', case='', card='s', gender='', noun_class='', singular_stem_class='',
-                 singular_stem='', singular_declension='', plural_stem_class='', plural_stem='', plural_declension='', **kwargs):
+                 singular_stem='', singular_declension='', plural_stem_class='', plural_stem='', plural_declension='',
+                 **kwargs):
         Noun.__init__(self, translation, case, card, gender, noun_class, 'czech')
 
         self.singular_stem_class = singular_stem_class
@@ -85,9 +86,6 @@ class CzechNoun(Noun):
             self.plural_stem_soft_ending = self.singular_stem_soft_ending
 
         self.plural_declension = plural_declension
-
-    # def label():
-        # return '%s%s' % (self.singular_stem, self.singular_declension)
 
     def latex(self, card_format='plural', adjective=None, descriptor=None):
 
@@ -123,11 +121,39 @@ class CzechNoun(Noun):
         return (self.singular_stem.encode('utf-8'))
 
 
-class Adjective(Word):
+class GermanNoun(Noun):
+    def __init__(self, translation='', card='', case='', gender='', singular_stem='', singular_declension='',
+                 plural_stem='', plural_declension='', **kwargs):
+        print(translation)
+        Noun.__init__(self, translation, case, card, gender, 'normal', 'german')
+        
+        self.singular_stem = singular_stem
+        self.singular_declension = singular_declension
+        self.plural_stem = plural_stem
+        self.plural_declension = plural_declension
+        
+    def latex(self, card_format='singular', adjective=None, descriptor=None):
+        if adjective is not None:
+            assert adjective.case == self.case, 'Verb/Noun case mis-match'
+            
+        if card_format == 'singular':
+            # verb = verbs[self.case]['verb']
+            verb = 'verb'
+            adjective = adjective.latex(self.gender, 'preceded', 'indef', cardinality='singular') if adjective is not None else ''
+            descriptor = descriptor.latex(self.case, self.gender, card_format, 'my') if descriptor is not None else ''
+
+            # if self.case == 'nominative':
+                # latex_string = '\card{%(case)s}{' % self.__dict__ + descriptor + adjective + ' %(singular_stem)s\soft{%(singular_stem_soft_ending)s}\%(gender)s{%(singular_declension)s} je tady}' % self.__dict__
+            latex_string = '\card{%(case)s}{' % self.__dict__ + verb + \
+                           descriptor + adjective + ' %(singular_stem)s\%(gender)s{%(singular_declension)s}}' % self.__dict__
+            
+        return latex_string
+
+class CzechAdjective(Word):
     def __init__(self, singular_translation='', case='', adjective_class='', stem='', MA_singular='', MI_singular='',
                  F_singular='', N_singular='', MA_plural_stem='', MA_plural='', MI_plural='', F_plural='', N_plural='',
                  **kwargs):
-        Word.__init__(self, singular_translation, case=case)
+        Word.__init__(self, singular_translation, case, 'czech')
         self.adjective_class = adjective_class
         self.stem = stem
         self.MAs = MA_singular
@@ -147,6 +173,32 @@ class Adjective(Word):
             lstring = ' \pl{%s}\%s{%s} ' % (stem, gender, declension)
         else:
             lstring = ' %s\%s{%s} ' % (stem, gender, declension)
+        return (lstring)
+
+
+class GermanAdjective(Word):
+    def __init__(self, case='', stem='', M_def='', M_indef='', F_def='', F_indef='', N_def='', N_indef='',
+                 P_preceded='', P_unpreceded='', singular_translation='', **kwargs):
+        Word.__init__(self, singular_translation, case, 'german')
+
+        self.stem = stem
+        self.M_def = M_def
+        self.M_indef = M_indef
+        self.F_def = F_def
+        self.F_indef = F_indef
+        self.N_def = N_def
+        self.N_indef = N_indef
+        self.P_preceded = P_preceded
+        self.P_unpreceded = P_unpreceded
+
+    def latex(self, gender, precedence, definiteness, cardinality='singular'):
+        isSingular = cardinality == 'singular'
+        declension = getattr(self, '%s_%s' % (gender, definiteness)) if isSingular \
+            else getattr(self, 'P_%s' % precedence)
+        if isSingular:
+            lstring = ' %s\%s{%s} ' % (self.stem, gender, declension)
+        else:
+            lstring = ' \pl{%s}\%s{%s} ' % (self.stem, gender, declension)
         return (lstring)
 
 
@@ -231,24 +283,44 @@ def parse_excel_vocab_sheet(language='Czech'):
         nouns.replace('nan', '', inplace=True)
         adjectives.replace('nan', '', inplace=True)
         vocab = (nouns, adjectives, demonstratives)
-        
+
     if language == 'German':
         nouns = pd.read_excel('/Users/asavol/Downloads/German vocabulary.xlsx', sheet_name='Nouns')
-        # adjectives = pd.read_excel('/Users/asavol/Downloads/Czech vocabulary.xlsx', sheet_name='Adjectives')
+        adjectives = pd.read_excel('/Users/asavol/Downloads/German vocabulary.xlsx', sheet_name='Adjectives')
         # demonstratives = pd.read_excel('/Users/asavol/Downloads/Czech vocabulary.xlsx', sheet_name='Demonstratives')
 
         # nouns[nouns.isna()] = ''
         # adjectives[adjectives.isna()] = ''
         # nouns.replace('nan', '', inplace=True)
         # adjectives.replace('nan', '', inplace=True)
-        vocab = (nouns)
+        vocab = (nouns, adjectives)
 
     return vocab
 
 
 def german_main():
-    v = parse_excel_vocab_sheet(language='German')
-    return v
+    nouns, adjectives = parse_excel_vocab_sheet(language='German')
+    
+    all_cases = ['nominative', 'accusative', 'genitive', 'dative']
+
+    # -----
+    # NOUNS
+    # -----
+    NS = {case: [] for case in all_cases}
+
+    for record in nouns.iterrows():
+        x = GermanNoun(**record[1])  # ignore record index
+        NS[x.case].append(x)
+        
+    # ----------
+    # ADJECTIVES
+    # ----------
+    AS = {case: [] for case in all_cases}
+
+    for record in adjectives.iterrows():
+        x = GermanAdjective(**record[1])  # ignore record index
+        AS[x.case].append(x)
+    return (NS,AS)
 
 
 def czech_main():
@@ -319,6 +391,7 @@ def czech_main():
 
     return NS, AS
 
+
 if __name__ == '__main__':
     # (N, A) = czech_main()
-    V = german_main()
+    (NS, AS) = german_main()
